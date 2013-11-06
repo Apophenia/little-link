@@ -45,7 +45,13 @@ app.get('/', function(request, response) {
 });
 
 app.get("/:key", function(request, response) {
-    response.redirect(map.get(request.param('key')));
+    var url = map.get(request.param('key'));
+    if (url.protocol == null) {
+	url = "http://" + url;
+	}
+    response.redirect(url);
+ // + "://" + request.url));
+ //   response.redirect(301, map.get(request.param('key')));
 });
 
 app.use(function(err, request, response, next){
