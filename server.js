@@ -1,7 +1,9 @@
 var express = require('express');
 var app = express();
-fs = require('fs');
+var fs = require('fs');
+var url = require("url");
 var dict = require("dict");
+var isurl = require("is-url")
 app.use(express.bodyParser());
 app.use(app.router);
 
@@ -23,11 +25,13 @@ function getRandomInt(min, max) {
 
 // This seems... inefficient.
 function validate(character) {
-    if ("abcdefghijklmnopqrstuvwxyz".indexOf(character) !== -1) 
-	return character;
+    if (/[a-z]/.test(character))
+    	return character;
     else
 	return "" + getRandomInt(0, 9);
 }
+
+
 
 // Placeholder hash function that returns a reduced key string, given a url
 function simpleHash(url) {
@@ -45,13 +49,15 @@ app.get('/', function(request, response) {
 });
 
 app.get("/:key", function(request, response) {
-    var url = map.get(request.param('key'));
-    if (url.protocol == null) {
-	url = "http://" + url;
+    var urlString = map.get(request.param('key'));
+    console.log(urlString);
+    var urlProtocol = url.parse(urlString).protocol;
+    console.log(urlProtocol);
+    // add protocol prefix if one does not exist
+    if (urlProtocol == null) {
+	urlString = "http://" + urlString;
 	}
-    response.redirect(url);
- // + "://" + request.url));
- //   response.redirect(301, map.get(request.param('key')));
+    response.redirect(urlString);
 });
 
 app.use(function(err, request, response, next){
@@ -60,17 +66,17 @@ app.use(function(err, request, response, next){
 });
 
 // Shortens URL; returns placeholder page with values
-app.post('/shortenURL', function(request, response) {
-    var url = request.body.inputurl;
-    console.log(url);
-    var key = simpleHash(url);
-    console.log(key);
-    while (map.has(key)) {
-	key = key + getRandomInt(0, 10);
+app.post('/shortenURL', function(request, response) {    
+    var urlString = request.body.inputurl;
+    if (isurl(urlString)) {
+	var key = simpleHash(urlString);
+	while (map.has(key)) {
+	    key = key + getRandomInt(0, 10);
+	}
+	map.set(key, urlString);
+	response.send("Adding " + key + urlString);
     }
-    map.set(key, url);
-    console.log(map);
-    response.send("Adding " + key + url);
+    else (response.send("That's not a real URL, silly!"));
 });
 
 app.listen(3000);
