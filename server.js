@@ -3,21 +3,15 @@ var app = express();
 var fs = require('fs');
 var url = require("url");
 var dict = require("dict");
-var isurl = require("is-url")
+var file = "keymap.db";
+var exists = fs.existsSync(database);
+var isurl = require("is-url");
+var sqlite3 = require("sqlite3").verbose();
+var db = new sqlite3.Database(file);
 app.use(express.bodyParser());
 app.use(app.router);
 
-var map = dict();
-
 app.use('/', express.static('./public'));
-
-var lines = fs.readFileSync("database.txt", 'utf8').split('\n');
-
-// Loads "database" ;) into map in memory
-for (var i = 0; i < lines.length; i++) {
-var tempArray = lines[i].split(" ");
-map.set(tempArray[0],tempArray[1]);
-}
 
 function getRandomInt(min, max) {
   return Math.floor(Math.random() * (max - min + 1) + min);
@@ -31,7 +25,15 @@ function validate(character) {
 	return "" + getRandomInt(0, 9);
 }
 
-
+function prefixUrl(urlString) {
+var urlProtocol = url.parse(urlString).protocol;
+    console.log(urlProtocol);
+    // add protocol prefix if one does not exist
+    if (urlProtocol == null) {
+	urlString = "http://" + urlString;
+	}
+    return urlString;
+};
 
 // Placeholder hash function that returns a reduced key string, given a url
 function simpleHash(url) {
@@ -49,14 +51,7 @@ app.get('/', function(request, response) {
 });
 
 app.get("/:key", function(request, response) {
-    var urlString = map.get(request.param('key'));
-    console.log(urlString);
-    var urlProtocol = url.parse(urlString).protocol;
-    console.log(urlProtocol);
-    // add protocol prefix if one does not exist
-    if (urlProtocol == null) {
-	urlString = "http://" + urlString;
-	}
+    var urlString = 
     response.redirect(urlString);
 });
 
@@ -68,6 +63,18 @@ app.use(function(err, request, response, next){
 // Shortens URL; returns placeholder page with values
 app.post('/shortenURL', function(request, response) {    
     var urlString = request.body.inputurl;
+
+/* Begin DB calls
+
+db.serialize(function() {
+    if(!exists) {
+	db.run("CREATE TABLE URLs (key varchar(80), url(500)");
+}
+
+var stmt = db.prepare("INSERT INTO URLs VALUES (?, ?)");
+
+*/
+
     if (isurl(urlString)) {
 	var key = simpleHash(urlString);
 	while (map.has(key)) {
