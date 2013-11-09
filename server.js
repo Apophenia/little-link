@@ -17,7 +17,6 @@ function getRandomInt(min, max) {
   return Math.floor(Math.random() * (max - min + 1) + min);
 }
 
-// This seems... inefficient.
 function validate(character) {
     if (/[a-z]/.test(character))
     	return character;
@@ -55,6 +54,7 @@ app.get("/:key", function(request, response) {
     response.redirect(urlString);
 });
 
+// 404 response
 app.use(function(err, request, response, next){
     console.error(err.stack);
     response.send(404, "Not valid");
@@ -63,27 +63,25 @@ app.use(function(err, request, response, next){
 // Shortens URL; returns placeholder page with values
 app.post('/shortenURL', function(request, response) {    
     var urlString = request.body.inputurl;
-
-/* Begin DB calls
-
-db.serialize(function() {
-    if(!exists) {
-	db.run("CREATE TABLE URLs (key varchar(80), url(500)");
-}
-
-var stmt = db.prepare("INSERT INTO URLs VALUES (?, ?)");
-
-*/
-
     if (isurl(urlString)) {
 	var key = simpleHash(urlString);
-	while (map.has(key)) {
-	    key = key + getRandomInt(0, 10);
-	}
-	map.set(key, urlString);
+	insertUrl(key, urlString);
 	response.send("Adding " + key + urlString);
     }
-    else (response.send("That's not a real URL, silly!"));
-});
+    else (response.send("Invalid URL."))
+}
 
+function insertUrl(key, urlString) {
+    db.serialize(function() {
+	if(!exists) {
+	    db.run("CREATE TABLE URLs (key varchar(80), url(500)");
+	}
+	var stmt = db.prepare("INSERT INTO URLs VALUES (?, ?)");
+	stmt.run(key, urlString);
+	stmt.finalize();
+    })
+}
+
+db.close();
+    
 app.listen(3000);
