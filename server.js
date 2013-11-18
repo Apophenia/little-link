@@ -32,7 +32,6 @@ function validate(character) {
 
 function prefixUrl(urlString) {
 var urlProtocol = url.parse(urlString).protocol;
-    console.log(urlProtocol);
     // add protocol prefix if one does not exist
     if (urlProtocol == null) {
 	urlString = "http://" + urlString;
@@ -52,47 +51,62 @@ function simpleHash(url) {
 
 // Basic HTTP response functions
 app.get('/', function(request, response) {
-   response.sendfile("public/index.html");
+    response.sendfile("public/index.html");
 });
 
-function retrieveURL(inputKey) {
+function retrieveURL(inputKey, cb) {
     if(exists) {
-	var stmt = db.prepare("SELECT url FROM URLs WHERE key ="+ inputKey);
-
+	var stmt = "SELECT url FROM URLs WHERE key = (?)";
+	db.get(stmt, inputKey, function(err, answer) {
+	    cb(err, answer.url);
+	});
+    }
+};
 
 app.get("/:key", function(request, response) {
-    var urlString = retrieveUrl(request.body.key);
-
-    response.redirect(urlString);
+    retrieveURL(request.param("key"), function(err, url) {
+	response.redirect(url);
+    });
 });
 
 // 404 response
 app.use(function(err, request, response, next){
     console.error(err.stack);
-    response.send(404, "Not valid");
+    response.send(404, "404: Page not valid");
 });
 
 // Shortens URL; returns placeholder page with values
 app.post('/shortenURL', function(request, response) {
-    var urlString = request.body.inputurl;
-    if (isurl(urlString)) {
-	var key = simpleHash(urlString);
-	insertUrl(key, urlString);
-	response.send("Adding " + key + urlString);
+    var urlString = prefixUrl(request.body.inputurl);
+    var validURL = (isurl(urlString));
+    if (!validURL) {
+	response.send("Invalid URL.");
     }
-    else (response.send("Invalid URL."))
+    else {
+	var key = simpleHash(urlString);
+	insertUrl(key, urlString, function(err) {
+	    if (err) {
+		response.send("Failed to write to the database.");
+	    }
+	    else {
+		response.send("Adding " + key + " " + urlString);
+	    }
+	});
+    }
 });
 
-function insertUrl(key, urlString) {
+function insertUrl(key, urlString, cb) {
     db.serialize(function() {
 	if(exists) {
-	    db.run("CREATE TABLE URLs (key varchar(80), url varchar(500))");
+	    var stmt = db.prepare("INSERT INTO URLs (key, url) VALUES (?, ?)");
+	    stmt.run(key, urlString);
+	    stmt.finalize();
+	    cb(null);
 	}
-	var stmt = db.prepare("INSERT INTO URLs (key, url) VALUES (?, ?)");
-	stmt.run(key, urlString);
-	stmt.finalize();
-//	db.close();
+	else {
+	    cb(true);
+	}
     });
 };
 
-app.listen(3000);
+app.listen(3000, "0.0.0.0");
