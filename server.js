@@ -4,7 +4,13 @@ var fs = require('fs');
 var url = require("url");
 var dict = require("dict");
 var file = "keymap.db";
-var exists = fs.existsSync(database);
+var exists = fs.existsSync(file);
+
+if(!exists) {
+    console.log("Creating database file.");
+    fs.openSync(file, "w")
+}
+
 var isurl = require("is-url");
 var sqlite3 = require("sqlite3").verbose();
 var db = new sqlite3.Database(file);
@@ -49,8 +55,14 @@ app.get('/', function(request, response) {
    response.sendfile("public/index.html");
 });
 
+function retrieveURL(inputKey) {
+    if(exists) {
+	var stmt = db.prepare("SELECT url FROM URLs WHERE key ="+ inputKey);
+
+
 app.get("/:key", function(request, response) {
-    var urlString = 
+    var urlString = retrieveUrl(request.body.key);
+
     response.redirect(urlString);
 });
 
@@ -61,7 +73,7 @@ app.use(function(err, request, response, next){
 });
 
 // Shortens URL; returns placeholder page with values
-app.post('/shortenURL', function(request, response) {    
+app.post('/shortenURL', function(request, response) {
     var urlString = request.body.inputurl;
     if (isurl(urlString)) {
 	var key = simpleHash(urlString);
@@ -69,19 +81,18 @@ app.post('/shortenURL', function(request, response) {
 	response.send("Adding " + key + urlString);
     }
     else (response.send("Invalid URL."))
-}
+});
 
 function insertUrl(key, urlString) {
     db.serialize(function() {
-	if(!exists) {
-	    db.run("CREATE TABLE URLs (key varchar(80), url(500)");
+	if(exists) {
+	    db.run("CREATE TABLE URLs (key varchar(80), url varchar(500))");
 	}
-	var stmt = db.prepare("INSERT INTO URLs VALUES (?, ?)");
+	var stmt = db.prepare("INSERT INTO URLs (key, url) VALUES (?, ?)");
 	stmt.run(key, urlString);
 	stmt.finalize();
-    })
-}
+//	db.close();
+    });
+};
 
-db.close();
-    
 app.listen(3000);
