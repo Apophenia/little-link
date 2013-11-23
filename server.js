@@ -54,25 +54,36 @@ app.get('/', function(request, response) {
     response.sendfile("public/index.html");
 });
 
-function retrieveURL(inputKey, cb) {
+function retrieveURL(inputKey, successCallback, failureCallback) {
     if(exists) {
 	var stmt = "SELECT url FROM URLs WHERE key = (?)";
 	db.get(stmt, inputKey, function(err, answer) {
-	    cb(err, answer.url);
+	    console.log(answer);
+	    if (answer) {
+		successCallback(answer.url);
+		}
+	    else {
+		failureCallback();
+		}
 	});
     }
 };
 
 app.get("/:key", function(request, response) {
-    retrieveURL(request.param("key"), function(err, url) {
-	response.redirect(url);
-    });
+    retrieveURL(request.param("key"),
+		function (url) {
+		    response.redirect(url);
+		}, // success callback
+		function(err) {
+		    response.send(404, "404: Page not found.");
+		    console.log(err);
+		}); // failure callback
 });
 
 // 404 response
 app.use(function(err, request, response, next){
     console.error(err.stack);
-    response.send(404, "404: Page not valid");
+    response.send(404, "404: Page not found");
 });
 
 // Shortens URL; returns placeholder page with values
@@ -84,6 +95,7 @@ app.post('/shortenURL', function(request, response) {
     }
     else {
 	var key = simpleHash(urlString);
+	console.log(urlString);
 	insertUrl(key, urlString, function(err) {
 	    if (err) {
 		response.send("Failed to write to the database.");
@@ -94,6 +106,11 @@ app.post('/shortenURL', function(request, response) {
 	});
     }
 });
+
+app.post('/AjaxTest', function(request, response) {
+    response.send("Hello world!")
+    }
+);
 
 function insertUrl(key, urlString, cb) {
     db.serialize(function() {

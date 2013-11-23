@@ -1,19 +1,21 @@
 <html lang="en">
 <head>
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
 <metacharset="utf-8">
 <title>
 Little Link
 </title>
 </head>
 <body id="little-link">
-<div class="page-wrapper">
+<p id="ajax_response"></p>
+<div class="page_wrapper">
 <section class="content" id="page-content">
 <header role="banner">
   <h1>Little Link</h1>
-  <h2>A <abbr title="Uniform Resource Locator">URL</abbr> 
+  <h2>A <abbr title="Uniform Resource Locator">URL</abbr>
     shortening service.</h2>
 <div class="instructions" id="form-instructions" role="article">
-<p>Enter the URL that you would like to be shortened, 
+<p>Enter the URL that you would like to be shortened,
   and we'll return a new, shorter link.</p></div>
 <div class="form" id="form-body" role="form">
   <form action="/shortenURL" method="POST">
@@ -24,5 +26,12 @@ Little Link
   </form>
 </div>
 </div>
+<script>
+  function AjaxTest() {
+  $.post("/AjaxTest", function(response) {
+  console.log(response);
+  });
+  }
+</script>
 </body>
 </html>
