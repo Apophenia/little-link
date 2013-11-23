@@ -86,6 +86,11 @@ app.use(function(err, request, response, next){
     response.send(404, "404: Page not found");
 });
 
+app.post("/test", function(request, response) {
+var secret = request.body.secret;
+response.send("Server says" + secret);
+});
+
 // Shortens URL; returns placeholder page with values
 app.post('/shortenURL', function(request, response) {
     var urlString = prefixUrl(request.body.inputurl);
@@ -101,7 +106,7 @@ app.post('/shortenURL', function(request, response) {
 		response.send("Failed to write to the database.");
 	    }
 	    else {
-		response.send("Adding " + key + " " + urlString);
+		response.send("http://fakeurl.com/"+ key);
 	    }
 	});
     }

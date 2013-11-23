@@ -17,21 +17,28 @@ Little Link
 <div class="instructions" id="form-instructions" role="article">
 <p>Enter the URL that you would like to be shortened,
   and we'll return a new, shorter link.</p></div>
-<div class="form" id="form-body" role="form">
-  <form action="/shortenURL" method="POST">
   <input id="inputurl" name="inputurl" size="80" type="text" />
-  <div class="button" id="form-button" role="button">
-    <input name="Submit" type="submit" value="Submit" />
+  <button id="Submit" name="Submit" type="submit" value="Submit">Submit</button>
   </div>
-  </form>
+  <div class="responseText" id="returnedText" role="article">
+       </div>
+  </div>
+</form>
 </div>
 </div>
 <script>
-  function AjaxTest() {
-  $.post("/AjaxTest", function(response) {
-  console.log(response);
-  });
-  }
+
+$("#Submit").click(function(event) {
+   postData = {"inputurl": $('#inputurl').val()}
+   $.post("/shortenURL", postData).done(function(response) {
+console.log(response);
+$("#returnedText").hide(400, function() {
+  $( "div.responseText").html(response);
+  $( "#returnedText").show(600);
+});
+})
+     event.preventDefault();
+});
 </script>
 </body>
 </html>
