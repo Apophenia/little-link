@@ -6,18 +6,17 @@ var dict = require("dict");
 var file = "keymap.db";
 var exists = fs.existsSync(file);
 
-if(!exists) {
-    console.log("Creating database file.");
-    fs.openSync(file, "w")
-}
-
 var isurl = require("is-url");
 var sqlite3 = require("sqlite3").verbose();
 var db = new sqlite3.Database(file);
-app.use(express.bodyParser());
-app.use(app.router);
 
-app.use('/', express.static('./public'));
+app.configure(function(){
+    app.use(express.logger('dev'));
+    app.use(express.bodyParser());
+    app.use(express.methodOverride());
+    app.use(express.static('public'));
+    app.use(app.router);
+});
 
 function getRandomInt(min, max) {
   return Math.floor(Math.random() * (max - min + 1) + min);
@@ -86,11 +85,6 @@ app.use(function(err, request, response, next){
     response.send(404, "404: Page not found");
 });
 
-app.post("/test", function(request, response) {
-var secret = request.body.secret;
-response.send("Server says" + secret);
-});
-
 // Shortens URL; returns placeholder page with values
 app.post('/shortenURL', function(request, response) {
     var urlString = prefixUrl(request.body.inputurl);
@@ -112,11 +106,6 @@ app.post('/shortenURL', function(request, response) {
     }
 });
 
-app.post('/AjaxTest', function(request, response) {
-    response.send("Hello world!")
-    }
-);
-
 function insertUrl(key, urlString, cb) {
     db.serialize(function() {
 	if(exists) {
@@ -130,5 +119,7 @@ function insertUrl(key, urlString, cb) {
 	}
     });
 };
+
+db.run("CREATE TABLE IF NOT EXISTS URLs (key varchar(80), url varchar(500))");
 
 app.listen(3000, "0.0.0.0");
