@@ -111,9 +111,11 @@ app.post('/shortenURL', function(request, response) {
 
 function insertUrl(key, urlString, cb) {
     var query = client.query("INSERT INTO URLs (key, url) VALUES ($1, $2)", [key, urlString]);
-    query.on('error', function(error) {
-	console.log("An error has occured while writing to the database.");
-    });
-}
+    query.on('end', (function(result) {
+	if (!result) { return; }
+	cb(null);
+    }));
+    query.on('error', (function() { cb(true);}));
+};
 
 app.listen(3000, "0.0.0.0");
