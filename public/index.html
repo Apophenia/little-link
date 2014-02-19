@@ -1,44 +1,46 @@
 <html lang="en">
-<head>
-<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
-<metacharset="utf-8">
-<title>
-Little Link
-</title>
-</head>
-<body id="little-link">
-<p id="ajax_response"></p>
-<div class="page_wrapper">
-<section class="content" id="page-content">
-<header role="banner">
-  <h1>Little Link</h1>
-  <h2>A <abbr title="Uniform Resource Locator">URL</abbr>
-    shortening service.</h2>
-<div class="instructions" id="form-instructions" role="article">
-<p>Enter the URL that you would like to be shortened,
-  and we'll return a new, shorter link.</p></div>
-  <input id="inputurl" name="inputurl" size="80" type="text" />
-  <button id="Submit" name="Submit" type="submit" value="Submit">Submit</button>
-  </div>
-  <div class="responseText" id="returnedText" role="article">
-       </div>
-  </div>
+  <head>
+    <link href='http://fonts.googleapis.com/css?family=Sansita+One|Average+Sans' rel='stylesheet' type='text/css'>
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+    <link rel="stylesheet" href="main.css">
+    <metacharset="utf-8">
+      <title>Little Link</title>
+  </head>
+  <body id="little-link">
+    <p id="ajax_response"></p>
+    <div class="page_wrapper">
+      <section class="content" id="page-content">
+	<header role="banner">
+	  <h1>Little Link</h1>
+	</header>
+	<h2>A <abbr title="Uniform Resource Locator">URL</abbr>
+	  shortening service.</h2>
+	<div class="instructions" id="form-instructions" role="article">
+	  <p>Enter the URL that you would like to be shortened,
+	    and we'll return a new, shorter link.</p>
+	</div>
+	<div class="content shorten-form" id="interactive">
+	<input id="inputurl" name="inputurl" size="40" type="text" />
+	<button id="Submit" name="Submit" type="submit" value="Submit">Submit</button>
+	</div>
+    </div>
+    <div class="responseText" id="returnedText" role="article">
+    </div>
+</div>
 </form>
 </div>
 </div>
 <script>
-
-$("#Submit").click(function(event) {
-   postData = {"inputurl": $('#inputurl').val()}
-   $.post("/shortenURL", postData).done(function(response) {
-console.log(response);
-$("#returnedText").hide(400, function() {
+  $("#Submit").click(function(event) {
+  postData = {"inputurl": $('#inputurl').val()}
+  $.post("/shortenURL", postData).done(function(response) {
+  $("#returnedText").hide(400, function() {
   $( "div.responseText").html(response);
   $( "#returnedText").show(600);
-});
-})
-     event.preventDefault();
-});
+  });
+  })
+  event.preventDefault();
+  });
 </script>
 </body>
 </html>

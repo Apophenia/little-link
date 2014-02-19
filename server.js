@@ -1,14 +1,9 @@
 var express = require('express');
 var app = express();
-var fs = require('fs');
 var url = require("url");
 var dict = require("dict");
-var file = "keymap.db";
-var exists = fs.existsSync(file);
-
 var isurl = require("is-url");
-var sqlite3 = require("sqlite3").verbose();
-var db = new sqlite3.Database(file);
+var pg = require('pg');
 
 app.configure(function(){
     app.use(express.logger('dev'));
@@ -16,6 +11,14 @@ app.configure(function(){
     app.use(express.methodOverride());
     app.use(express.static('public'));
     app.use(app.router);
+});
+
+var client = new pg.Client(process.env.DATABASE_URL);
+
+client.connect(function(err) {
+    if(err) {
+	return console.error('Failed to connect to Postgres', err);
+    }
 });
 
 function getRandomInt(min, max) {
@@ -107,19 +110,10 @@ app.post('/shortenURL', function(request, response) {
 });
 
 function insertUrl(key, urlString, cb) {
-    db.serialize(function() {
-	if(exists) {
-	    var stmt = db.prepare("INSERT INTO URLs (key, url) VALUES (?, ?)");
-	    stmt.run(key, urlString);
-	    stmt.finalize();
-	    cb(null);
-	}
-	else {
-	    cb(true);
-	}
+    var query = client.query("INSERT INTO URLs (key, url) VALUES ($1, $2)", [key, urlString]);
+    query.on('error', function(error) {
+	console.log("An error has occured while writing to the database.");
     });
-};
-
-db.run("CREATE TABLE IF NOT EXISTS URLs (key varchar(80), url varchar(500))");
+}
 
 app.listen(3000, "0.0.0.0");
