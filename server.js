@@ -57,19 +57,13 @@ app.get('/', function(request, response) {
 });
 
 function retrieveURL(inputKey, successCallback, failureCallback) {
-    if(exists) {
-	var stmt = "SELECT url FROM URLs WHERE key = (?)";
-	db.get(stmt, inputKey, function(err, answer) {
-	    console.log(answer);
-	    if (answer) {
-		successCallback(answer.url);
-		}
-	    else {
-		failureCallback();
-		}
-	});
-    }
-};
+    var query = client.query("SELECT url FROM URLs WHERE key = ($1)", [inputKey]);
+    query.on('row', (function(row) {
+	if (!row) { return; }
+	successCallback(row.url);
+    }));
+    query.on('error', failureCallback);
+}
 
 app.get("/:key", function(request, response) {
     retrieveURL(request.param("key"),
@@ -115,7 +109,7 @@ function insertUrl(key, urlString, cb) {
 	if (!result) { return; }
 	cb(null);
     }));
-    query.on('error', (function() { cb(true);}));
+    query.on('error', (function() { cb(true); }));
 };
 
 app.listen(3000, "0.0.0.0");
