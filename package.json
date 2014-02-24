@@ -1,0 +1,27 @@
+{
+  "name": "little-link",
+  "version": "0.5.0",
+  "description": "A basic link shortener build with Node, Express, and Heroku.",
+  "main": "server.js",
+  "dependencies": {
+    "dict": "~1.4.0",
+    "express": "~3.4.4",
+    "is-url": "~0.1.0",
+    "pg": "~2.11.1"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Apophenia/little-link.git"
+  },
+  "author": "Lyndsey Moulds",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Apophenia/little-link/issues"
+  },
+  "homepage": "https://github.com/Apophenia/little-link"
+}
