@@ -21,6 +21,9 @@ client.connect(function(err) {
     }
 });
 
+client.query(
+	'CREATE TABLE IF NOT EXISTS URLs (key varchar(10) primary key, url varchar(2000) not null)');
+
 function getRandomInt(min, max) {
   return Math.floor(Math.random() * (max - min + 1) + min);
 }
