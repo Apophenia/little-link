@@ -108,7 +108,7 @@ app.post('/shortenURL', function(request, response) {
 		message = "Failed to write to the database.";
 	    }
 	    else {
-		message = "http://fakeurl.com/"+ key;
+		message = process.env.APP_URL + key;
 	    }
 	    response.send(message);
 	});
