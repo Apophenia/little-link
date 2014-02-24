@@ -34,9 +34,9 @@
   $("#Submit").click(function(event) {
   postData = {"inputurl": $('#inputurl').val()}
   $.post("/shortenURL", postData).done(function(response) {
-  $("#returnedText").hide(400, function() {
-  $( "div.responseText").html(response);
-  $( "#returnedText").show(600);
+  $("#returnedText").fadeOut(400, function() {
+     $( "div.responseText").html(response);
+     $( "#returnedText").fadeIn(600);
   });
   })
   event.preventDefault();

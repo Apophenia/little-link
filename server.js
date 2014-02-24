@@ -56,7 +56,17 @@ app.get('/', function(request, response) {
     response.sendfile("public/index.html");
 });
 
-function retrieveURL(inputKey, successCallback, failureCallback) {
+function keyExists(inputKey) {
+    console.log(inputKey);
+    var query = client.query("SELECT * FROM URLs WHERE key = ($1)", [inputKey]);
+    var addr = "";
+    query.on('row', (function(row) {
+	addr = row;
+    }));
+    return addr;
+}
+
+function retrieveUrl(inputKey, successCallback, failureCallback) {
     var query = client.query("SELECT url FROM URLs WHERE key = ($1)", [inputKey]);
     query.on('row', (function(row) {
 	if (!row) { return; }
@@ -66,7 +76,7 @@ function retrieveURL(inputKey, successCallback, failureCallback) {
 }
 
 app.get("/:key", function(request, response) {
-    retrieveURL(request.param("key"),
+    retrieveUrl(request.param("key"),
 		function (url) {
 		    response.redirect(url);
 		}, // success callback
@@ -91,25 +101,39 @@ app.post('/shortenURL', function(request, response) {
     }
     else {
 	var key = simpleHash(urlString);
-	console.log(urlString);
+	keyExists(key);
 	insertUrl(key, urlString, function(err) {
+	    var message = "";
 	    if (err) {
-		response.send("Failed to write to the database.");
+		message = "Failed to write to the database.";
 	    }
 	    else {
-		response.send("http://fakeurl.com/"+ key);
+		message = "http://fakeurl.com/"+ key;
 	    }
+	    response.send(message);
 	});
     }
 });
 
-function insertUrl(key, urlString, cb) {
+function writePair(key, urlString, cb) {
     var query = client.query("INSERT INTO URLs (key, url) VALUES ($1, $2)", [key, urlString]);
-    query.on('end', (function(result) {
-	if (!result) { return; }
-	cb(null);
-    }));
-    query.on('error', (function() { cb(true); }));
+    query.on('end', function(result) { cb(); });
+    query.on('error', cb);
 };
+
+function insertUrl(key, urlString, cb) {
+    if (!keyExists(key)) {
+	writePair(key, urlString, function(err) {
+	    if (err) {
+		console.log("error");
+		cb(err);
+	    }
+	    else {
+		console.log("no error");
+		cb();
+	    }
+	});
+    }
+}
 
 app.listen(3000, "0.0.0.0");
